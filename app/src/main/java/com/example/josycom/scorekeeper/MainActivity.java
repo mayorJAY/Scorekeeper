@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
@@ -18,6 +19,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView mScoreText1, mScoreText2;
     static final String STATE_SCORE_1 = "Team 1 Score";
     static final String STATE_SCORE_2 = "Team 2 Score";
+    private SharedPreferences mPreferences;
+    private String sharedPrefFile = "com.example.josycom.scorekeeper";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,17 +28,23 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mScoreText1 = findViewById(R.id.score_1);
         mScoreText2 = findViewById(R.id.score_2);
+        mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
 
 
-        if(savedInstanceState != null){
-            mScore1 = savedInstanceState.getInt(STATE_SCORE_1);
-            mScore2 = savedInstanceState.getInt(STATE_SCORE_2);
-            //Set the score text views
+        //if(savedInstanceState != null){
+//            mScore1 = savedInstanceState.getInt(STATE_SCORE_1);
+//            mScore2 = savedInstanceState.getInt(STATE_SCORE_2);
+//            //Set the score text views
+//            mScoreText1.setText(String.valueOf(mScore1));
+//            mScoreText2.setText(String.valueOf(mScore2));
+
+            mScore1 = mPreferences.getInt(STATE_SCORE_1, mScore1);
+            mScore2 = mPreferences.getInt(STATE_SCORE_2, mScore2);
+            // Set the score text views
             mScoreText1.setText(String.valueOf(mScore1));
             mScoreText2.setText(String.valueOf(mScore2));
+        //}
 
-
-        }
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -96,16 +105,39 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+//    @Override
+//    protected void onSaveInstanceState(Bundle outState) {
+//        //Saves the scores
+//        outState.putInt(STATE_SCORE_1, mScore1);
+//        outState.putInt(STATE_SCORE_2, mScore2);
+//        super.onSaveInstanceState(outState);
+//    }
+
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        //Saves the scores
-        outState.putInt(STATE_SCORE_1, mScore1);
-        outState.putInt(STATE_SCORE_2, mScore2);
-        super.onSaveInstanceState(outState);
+    protected void onPause() {
+        super.onPause();
+
+        SharedPreferences.Editor preferenceEditor = mPreferences.edit();
+        preferenceEditor.putInt(STATE_SCORE_1, mScore1);
+        preferenceEditor.putInt(STATE_SCORE_2, mScore2);
+        preferenceEditor.apply();
     }
 
     public void openBatteryActivity(View view) {
         Intent intent = new Intent(MainActivity.this, BatteryActivity.class);
         startActivity(intent);
+    }
+
+    public void resetScore(View view) {
+        //Reset scores
+        mScore1 = 0;
+        mScore2 = 0;
+        mScoreText1.setText(String.valueOf(mScore1));
+        mScoreText2.setText(String.valueOf(mScore2));
+
+        //Clear preferences
+        SharedPreferences.Editor preferenceEditor = mPreferences.edit();
+        preferenceEditor.clear();
+        preferenceEditor.apply();
     }
 }
